@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>학습 활동</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Noto Sans KR', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #FDF8F4;
+      color: #333;
+      line-height: 1.5;
+      max-width: 390px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #fdf8f4;
+        padding: 12px 16px; /* Reduced horizontal padding */
+        border-bottom: 1px solid #e8ddd4;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        font-weight: 700;
+        color: #f96c50;
+    }
+
+    .logo i {
+        margin-right: 8px;
+        font-size: 22px; /* Slightly smaller icon */
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px; /* Reduced gap */
+    }
+
+    .header-btn {
+        background: none;
+        border: none;
+        padding: 8px;
+        border-radius: 8px;
+        color: #DD6B20;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .header-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .container {
+      max-width: 390px;
+      margin: auto;
+      text-align: center;
+    }
+
+    .goal-card {
+      background: linear-gradient(135deg, #FEE6DD 0%, #FFF3F0 100%);
+      border-radius: 25px;
+      padding: 20px;
+      margin: 20px auto;
+    }
+
+    .timer {
+      background: white;
+      border-radius: 30px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .svg-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: auto;
+    }
+    .svg-container svg {
+      transform: rotate(-90deg);
+    }
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 26px;
+      font-weight: bold;
+    }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 10px 16px;
+      border-radius: 20px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .start { background: #10b981; color: white; }
+    .pause { background: #ffa726; color: white; }
+    .reset { background: #6b7280; color: white; }
+    .stop { background: #ef4444; color: white; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    function formatTime(total) {
+      const m = Math.floor(total / 60).toString().padStart(2, '0');
+      const s = (total % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function Header() {
+        return (
+          <header className="header">
+            <div className="logo">My Study</div>
+            <div className="header-buttons">
+              <button
+                className="header-btn"
+                onClick={() => {
+                  window.location.href = "./home.html";
+                }}
+              >
+                <i data-lucide="home" className="lucide" style={{ width: 20, height: 20 }} />
+              </button>
+              <button
+                className="header-btn"
+                onClick={() => window.location.reload()}
+              >
+                <i data-lucide="refresh-cw" className="lucide" style={{ width: 20, height: 20 }} />
+              </button>
+            </div>
+          </header>
+        );
+    }
+
+    const GoalCard = ({ plan }) => (
+      <div className="goal-card">
+        <h3>{plan.emoji} {plan.title}</h3>
+        <p>{plan.memo}</p>
+      </div>
+    );
+
+    const Timer = ({ seconds, isRunning, onToggle, onReset, onStop, targetMinutes }) => {
+      const radius = 90;
+      const circumference = 2 * Math.PI * radius;
+      const progress = (seconds / (targetMinutes * 60)) * 100;
+      const offset = Math.max(circumference - (progress / 100) * circumference, 0);
+      const isOver = seconds > targetMinutes * 60;
+
+      return (
+        <div className="timer">
+          <div className="svg-container">
+            <svg width="200" height="200">
+              <defs>
+                <linearGradient id="overGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ffa726" />
+                  <stop offset="100%" stopColor="#ef4444" />
+                </linearGradient>
+              </defs>
+              <circle cx="100" cy="100" r={radius} stroke="#e8e2f7" strokeWidth="12" fill="none" />
+              <circle
+                cx="100" cy="100" r={radius}
+                stroke={isOver ? "url(#overGradient)" : "#ffa726"}
+                strokeWidth="12" fill="none"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="timer-text">{formatTime(seconds)}</div>
+          </div>
+          <p>/ {formatTime(targetMinutes * 60)}</p>
+          {isOver && <p style={{ color: '#ffa726' }}>초과: +{formatTime(seconds - targetMinutes * 60)}</p>}
+
+          <div className="buttons">
+            <button className={"btn " + (isRunning ? "pause" : "start")} onClick={onToggle}>
+              {isRunning ? "⏸ 일시정지" : "▶ 시작"}
+            </button>
+            <button className="btn stop" onClick={onStop}>✅ 종료</button>
+            <button className="btn reset" onClick={onReset}>🔁 초기화</button>
+          </div>
+        </div>
+      );
+    };
+
+    const AchievementInput = ({ onSubmit }) => {
+      const [value, setValue] = useState(50);
+      const emoji = value <= 20 ? "😭" : value <= 40 ? "😓" : value <= 60 ? "🙂" : value >= 80 ? "😍" : "😄";
+
+      return (
+        <div className="timer">
+          <h3>📊 오늘 목표 달성률을 선택해주세요!</h3>
+          <input type="range" min="0" max="100" value={value} onChange={e => setValue(parseInt(e.target.value))} />
+          <p>{emoji} {value}%</p>
+          <button className="btn start" onClick={() => onSubmit(value)}>✅ 입력 완료</button>
+        </div>
+      );
+    };
+
+    const FeedbackCard = ({ plan, seconds, achievement }) => {
+      const getEmoji = val => val <= 30 ? "😓" : val <= 70 ? "🙂" : "😄";
+      const getText = val => val <= 30 ? "낮음" : val <= 70 ? "보통" : "높음";
+
+      return (
+        <div className="timer">
+          <h3>🌟 오늘의 학습 완료!</h3>
+          <p>{plan.emoji} {plan.title}</p>
+          <p>⏱ 총 학습 시간: {formatTime(seconds)}</p>
+          <p>{getEmoji(achievement)} 목표 달성률: {getText(achievement)}</p>
+          <button className="btn start" onClick={() => {
+            // set plan done
+            const plans = JSON.parse(localStorage.getItem("userPlans")) || [];
+            const updatedPlans = plans.map(p =>
+              p.id === plan.id ? { ...p, done: true, achievement: achievement, duration: seconds } : p
+            );
+            localStorage.setItem("userPlans", JSON.stringify(updatedPlans));
+            // reset currentPlanID
+            localStorage.setItem("currentPlanID", JSON.stringify({}));
+            // jump to home
+            window.location.href = "home.html";
+          }}>확인</button>
+        </div>
+      );
+    };
+
+    function App() {
+      const [seconds, setSeconds] = useState(0);
+      const [isRunning, setIsRunning] = useState(false);
+      const [phase, setPhase] = useState('timer'); // 'timer', 'confirm', 'achievement', 'feedback'
+      const [achievement, setAchievement] = useState(50);
+
+      const planID = Number(localStorage.getItem("currentPlanID"));
+      const plans = JSON.parse(localStorage.getItem("userPlans")) || [];
+      const plan = !isNaN(planID) ? plans.find(p => p.id === planID) : {
+        emoji: "🎯",
+        title: "목표 없음",
+        memo: "",
+        start: "08:00",
+        end: "09:00",
+        id: 0,
+        done: false
+      };
+      const [sh, sm] = plan.start.split(':').map(Number);
+      const [eh, em] = plan.end.split(':').map(Number);
+      const targetMinutes = (eh * 60 + em) - (sh * 60 + sm);
+      const timerRef = useRef(null);
+
+      useEffect(() => {
+        if (isRunning) {
+          timerRef.current = setInterval(() => setSeconds(prev => prev + 1), 1000);
+        } else {
+          clearInterval(timerRef.current);
+        }
+        return () => clearInterval(timerRef.current);
+      }, [isRunning]);
+
+      useEffect(() => {
+        lucide.createIcons();
+      }, []);
+
+      const resetAll = () => {
+        setSeconds(0);
+        setIsRunning(false);
+        setAchievement(50);
+        setPhase('timer');
+      };
+
+      return (<>
+        <Header />
+        <div className="container">
+          <GoalCard plan={plan}/>
+          {phase === 'timer' && (
+            <Timer
+              seconds={seconds}
+              isRunning={isRunning}
+              onToggle={() => setIsRunning(!isRunning)}
+              onReset={() => { setSeconds(0); setIsRunning(false); }}
+              onStop={() => { setIsRunning(false); setPhase('confirm'); }}
+              targetMinutes={targetMinutes}
+            />
+          )}
+          {phase === 'confirm' && (
+            <div className="timer">
+              <h3>정말로 학습을 종료하시겠어요?</h3>
+              <div className="buttons">
+                <button className="btn stop" onClick={() => setPhase('achievement')}>YES</button>
+                <button className="btn reset" onClick={() => setPhase('timer')}>NO</button>
+              </div>
+            </div>
+          )}
+          {phase === 'achievement' && (
+            <AchievementInput onSubmit={(val) => { setAchievement(val); setPhase('feedback'); }} />
+          )}
+          {phase === 'feedback' && (
+            <FeedbackCard plan={plan} seconds={seconds} achievement={achievement} />
+          )}
+        </div>
+      </>);
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

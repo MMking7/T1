@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>학습 피드백</title>
+
+    <!-- Existing Project CSS and Fonts -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #fdf8f4;
+        max-width: 390px; /* Target max-width */
+        margin: 0 auto;
+        color: #333;
+        line-height: 1.6;
+        min-height: 100vh; /* Ensure body fills viewport height */
+        display: flex; /* Use flex to push footer down */
+        flex-direction: column; /* Arrange children vertically */
+    }
+
+    .header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #fdf8f4;
+        padding: 12px 16px; /* Reduced horizontal padding */
+        border-bottom: 1px solid #e8ddd4;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        font-weight: 700;
+        color: #f96c50;
+    }
+
+    .logo i {
+        margin-right: 8px;
+        font-size: 22px; /* Slightly smaller icon */
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px; /* Reduced gap */
+    }
+
+    .header-btn {
+        background: none;
+        border: none;
+        padding: 8px;
+        border-radius: 8px;
+        color: #DD6B20;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .header-btn:hover {
+        transform: scale(1.05);
+    }
+
+    /* 메인 컨테이너 */
+    .main-container {
+        margin-top: 20px;
+        padding: 16px;
+        width: 100%;
+        flex-grow: 1;
+    }
+
+    /* 페이지 타이틀 */
+    .page-title {
+        text-align: center;
+        margin-bottom: 24px; /* Adjusted margin */
+    }
+
+    .page-title h1 {
+        font-size: 24px; /* Reduced font size */
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 4px; /* Reduced margin */
+    }
+
+    .page-title p {
+        font-size: 14px; /* Reduced font size */
+        color: #666;
+    }
+
+    /* 카드 공통 스타일 */
+    .card {
+        background: white;
+        border-radius: 12px; /* Slightly smaller border-radius */
+        padding: 16px; /* Reduced padding */
+        margin-bottom: 16px; /* Reduced margin-bottom */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Slightly softer shadow */
+        border: 1px solid #f0f0f0;
+    }
+
+    .card-title {
+        font-size: 18px; /* Reduced font size */
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px; /* Reduced margin */
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title i {
+        margin-right: 8px;
+        color: #f96c50;
+        font-size: 1.1em; /* Relative size */
+    }
+
+    /* 오늘의 학습 요약 */
+    .summary-stats {
+        display: grid;
+        /* minmax(200px, 1fr) would likely cause overflow on 390px - padding */
+        /* Let grid handle it naturally, or explicitly set to 1fr on small screens */
+        /* As per previous logic, the media query handles this better,
+           but let's make the base definition reasonable too */
+         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Adjusted minmax */
+        gap: 16px; /* Reduced gap */
+        margin-bottom: 16px; /* Reduced margin */
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 16px; /* Reduced padding */
+        background: #f8f9fa;
+        border-radius: 10px; /* Slightly smaller border-radius */
+    }
+
+    .stat-value {
+        font-size: 24px; /* Reduced font size */
+        font-weight: 700;
+        color: #f96c50;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 13px; /* Slightly smaller font size */
+        color: #666;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px; /* Reduced height */
+        background: #e8ddd4;
+        border-radius: 3px; /* Reduced border-radius */
+        overflow: hidden;
+        margin: 10px 0; /* Reduced margin */
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #f96c50, #ff8a75);
+        width: 0%; /* Initial width */
+        border-radius: 3px; /* Match parent */
+        transition: width 0.5s ease;
+    }
+
+    .comparison-text {
+        background: #e8f5e8;
+        padding: 10px 12px; /* Reduced padding */
+        border-radius: 6px; /* Reduced border-radius */
+        color: #2d7a2d;
+        font-size: 13px; /* Reduced font size */
+        border-left: 3px solid #4caf50; /* Reduced border width */
+        display: flex;
+        align-items: center;
+        gap: 6px; /* Reduced gap */
+    }
+
+    /* 오늘의 공부 목록 */
+    .study-list {
+        list-style: none;
+    }
+
+    .study-item {
+        display: flex;
+        align-items: flex-start; /* Align items to start in case text wraps */
+        padding: 12px 0; /* Reduced padding */
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .study-item:last-child {
+        border-bottom: none;
+    }
+
+    .study-checkbox {
+        min-width: 18px; /* Reduced width */
+        width: 18px; /* Reduced width */
+        height: 18px; /* Reduced height */
+        border: 2px solid #f96c50;
+        border-radius: 4px;
+        margin-right: 12px; /* Reduced margin */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f96c50;
+        color: white;
+        font-size: 10px; /* Reduced font size */
+        flex-shrink: 0; /* Prevent shrinking */
+        margin-top: 2px; /* Adjust vertical alignment */
+    }
+
+    .study-text {
+        font-size: 15px; /* Slightly reduced font size */
+        color: #333;
+        word-break: break-word; /* Ensure long words break */
+    }
+
+    /* 오늘의 피드백 */
+    .feedback-card {
+        background: linear-gradient(135deg, #fff5f3, #fff8f7);
+        border-left: 3px solid #f96c50; /* Reduced border width */
+    }
+
+    .feedback-text {
+        font-size: 15px; /* Slightly reduced font size */
+        line-height: 1.7; /* Slightly adjusted line height */
+        color: #444;
+        padding: 12px; /* Reduced padding */
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+     .feedback-text h3 {
+         font-size: 16px; /* Ensure heading inside feedback text is readable */
+         margin-bottom: 4px; /* Space below heading */
+         color: #E14A2E; /* Match header/logo color */
+     }
+
+
+    /* 상호작용 버튼 */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px; /* Reduced gap */
+        margin-top: 24px; /* Reduced margin */
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%; /* Make buttons full width on small screens */
+        padding: 14px 20px; /* Adjusted padding */
+        border-radius: 10px; /* Adjusted border-radius */
+        font-size: 15px; /* Adjusted font size */
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none; /* Ensure buttons used as links look correct */
+    }
+
+
+    .btn-primary:hover {
+        background: #e85a3f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(249, 108, 80, 0.25); /* Adjusted shadow */
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #ffe5e0, #fff0ed);
+        color: #f96c50;
+        border: 2px solid #f96c50;
+    }
+
+    .btn-secondary:hover {
+        background: #f96c50;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+
+    .encouragement-section {
+        text-align: center;
+        padding: 24px 16px; /* Reduced padding */
+        background: linear-gradient(135deg, #fff8f7, #fff5f3);
+        border-radius: 12px; /* Adjusted border-radius */
+        margin: 0;
+    }
+
+    .encouragement-text {
+        font-size: 20px; /* Reduced font size */
+        font-weight: 600;
+        color: #333;
+        margin: 12px auto; /* Adjusted margin */
+        align-items: center;
+        gap: 8px;
+        word-break: break-word;
+    }
+
+    .encouragement-subtitle {
+        font-size: 14px; /* Reduced font size */
+        color: #666;
+        margin-bottom: 20px; /* Adjusted margin */
+        word-break: break-word;
+    }
+
+
+    /* 모달 스타일 */
+    .modal {
+        display: none; /* Controlled by JS */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 24px; /* Reduced padding */
+        border-radius: 12px; /* Reduced border-radius */
+        max-width: 360px; /* Adjusted max-width to fit within body */
+        width: calc(100% - 32px); /* Account for body padding if needed, or just use 90% */
+        width: 90%; /* Ensure it's 90% of viewport width */
+        animation: slideUp 0.3s ease;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px; /* Reduced margin */
+    }
+
+    .modal-title {
+        font-size: 18px; /* Reduced font size */
+        font-weight: 600;
+        color: #333;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 22px; /* Reduced font size */
+        color: #666;
+        cursor: pointer;
+    }
+
+    /* Emoji rating styling */
+    #emoji-rating span {
+        transition: all 0.2s;
+        border-radius: 50%;
+        padding: 2px 4px;
+        filter: grayscale(1); /* Start with grayscale */
+        opacity: 0.6; /* Start with reduced opacity */
+        transform: scale(1);
+    }
+
+    #emoji-rating span:hover {
+         filter: grayscale(0); /* Remove grayscale on hover */
+         opacity: 1; /* Full opacity on hover */
+         transform: scale(1.1); /* Slight scale on hover */
+    }
+
+
+    #emoji-rating span.selected {
+        transform: scale(1.2); /* Slightly less scale when selected */
+        filter: none; /* Remove grayscale */
+        background: #fff0ed;
+        opacity: 1; /* Full opacity */
+    }
+
+    #emoji-rating span.unselected {
+        filter: grayscale(1);
+        opacity: 0.5; /* More opacity for unselected */
+        transform: scale(1);
+        background: none;
+    }
+
+    /* Satisfaction textarea */
+    #satisfaction-text {
+        resize: vertical; /* Allow vertical resize */
+        overflow: auto; /* Show scrollbar if needed */
+        box-sizing: border-box;
+        width: 100%; /* Make it responsive */
+        /* max-width: 400px; Removed as body max-width handles this */
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border: 1px solid #e8ddd4;
+        padding: 8px;
+        min-height: 60px; /* Increased min-height */
+        font-size: 14px; /* Consistent font size */
+    }
+
+    /* Animation Keyframes */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translate(-50%, -40%); opacity: 0; }
+        to { transform: translate(-50%, -50%); opacity: 1; }
+    }
+
+    /* Removed the redundant @media (max-width: 768px) block
+       as styles are adjusted for 390px directly or handled by flex/grid */
+    </style>
+
+    <!-- React and Babel CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  </head>
+  <body>
+    <div id="root">
+      <!-- React app will be mounted here -->
+    </div>
+
+    <script type="text/babel">
+    const { useState, useEffect } = React;
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+
+    // Simulated API call function (from original script)
+    const myfetch = function(url, options) {
+      if (url === "/api/feedback/daily") {
+        const feedbacks = [
+  {
+    "analysis": "오늘 12:00–12:35에 근의 공식 개념을 완벽히 정리하셨고, 12:35–13:15에는 기출 문제로 실전 감각을 익히셨습니다. 13:15–13:45 응용 정리 시간에는 오답 유형을 체계적으로 분류하며 이해를 심화하셨습니다.",
+    "suggestion": "내일은 10분 동안 노트 없이 오늘 배운 개념을 스스로 구술해 보는 ‘자기 설명(Self-explanation) 퀴즈’를 추가하세요. 이후 20분 동안 판별식 활용 심화 문제 5개를 풀고, 풀이 과정을 3줄 이내로 요약해 보충 학습하면 좋겠습니다.",
+    "encouragement": "오늘처럼 스스로 확인하고 정리하는 습관이 점수 상승의 지름길입니다. 내일도 자신 있게 도전해 보세요! 💪"
+  },
+  {
+    "analysis": "개념 정리→기출 풀이→응용 정리로 이어지는 학습 흐름이 매끄러웠으며, 특히 응용 시간에 틀린 문제를 유형별로 재분류한 점이 돋보였습니다.",
+    "suggestion": "내일은 5분 휴식 후, 30분 타이머를 켜고 기출과 응용을 섞어 문제 10개를 랜덤 풀이해 보세요. 문제 유형이 섞이면 실전 감각이 더욱 강화됩니다.",
+    "encouragement": "섞어 풀기 방식으로 실전 적응력을 키우면, 시험장에서도 당황하지 않고 문제에 집중할 수 있을 거예요. 화이팅! 🚀"
+  },
+  {
+    "analysis": "첫 세션에서 개념 이해를 튼튼히 다졌고, 두 번째 세션에서 기출 문제로 바로 적용하며 효과적으로 학습하셨습니다. 응용 단계에서도 핵심 공식 활용에 자신감이 붙으셨습니다.",
+    "suggestion": "내일은 동료에게 오늘 배운 내용을 5분 동안 설명해 주는 ‘피어 티칭(Peer Teaching)’을 시도해 보세요. 설명 중 헷갈리는 부분이 있으면 오답 노트에 보충 정리해 두시면 더욱 좋습니다.",
+    "encouragement": "가르치면서 배우는 것은 최고의 복습 방법 중 하나입니다. 내일은 친구나 스터디 파트너와 함께 도전해 보세요! 🎓"
+  },
+  {
+    "analysis": "세 세션 모두 계획대로 완수하셨습니다. 특히 응용 정리 때 실수 포인트를 놓치지 않고 기록해 두신 점이 인상적입니다.",
+    "suggestion": "내일은 오전 학습 전 5분 동안 이전 날 오답 노트를 복습하고, 오후에는 15분간 스페이스 리피티션(Spaced Repetition)으로 다시 한 번 핵심 공식을 반복 암기해 보세요.",
+    "encouragement": "짧고 반복적인 복습이 장기 기억으로 이어집니다. 꾸준히 실천하시면 잊지 않고 완벽하게 숙지할 수 있을 거예요! 🔄"
+  },
+  {
+    "analysis": "오늘 12:00–13:45 플랜을 완벽히 소화하며 기초부터 응용까지 균형 잡힌 학습을 진행하셨습니다.",
+    "suggestion": "내일은 실제 시험 환경을 모사해, 40분 안에 근의 공식을 이용한 혼합 문제 12개를 풀어 보세요. 시험과 같은 시간 압박을 경험하면 집중력과 속도 모두 향상됩니다.",
+    "encouragement": "실전 연습을 통해 시험 스트레스를 줄이고, 더 여유 있게 문제를 풀 수 있을 거예요. 내일도 파이팅입니다! 🏆"
+  }
+];
+        const feedback = feedbacks[Math.floor(Math.random() * feedbacks.length)];
+
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            date: (new Date()).toLocaleString("ko-KR", {
+              year: "numeric",
+              day: "numeric",
+              month: "numeric",
+              weekday: "long",
+            }),
+            achievement: 87,
+            totalTime: 105, // in minutes
+            comparisonText: "지난주 오늘보다 15분 더 공부했어요", // Example comparison text
+            studyItems: [
+              "교과서 근의 공식 개념 정리: 103~109쪽 개념 정리하기 (12:00–12:35)",
+              "특급기출 문제 복습 및 풀이: 46쪽~48쪽 근의 공식 문제 풀이 (12:35–13:15)",
+              "근의 공식 응용 정리: 오답 및 응용 정리 (13:15–13:45)"
+            ],
+            feedback: feedback,
+          })
+        });
+      }
+
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        json: () => Promise.resolve({ error: "Not found" })
+      });
+    };
+
+    // Component for the Header
+    const Header = () => (
+      <header className="header">
+        <div className="logo">
+          My Study
+        </div>
+        <div className="header-actions">
+          <button
+            onClick={(e) => {e.stopPropagation(); window.location.href = 'home.html';}}
+            className="header-btn"
+          >
+            <i data-lucide="home" className="lucide" style={{ width: 20, height: 20 }} />
+          </button>
+          <button
+            onClick={() => window.location.reload() }
+            className="header-btn"
+          >
+            <i data-lucide="refresh-cw" className="lucide" style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
+      </header>
+    );
+
+    // Component for the Satisfaction Section
+    const SatisfactionSection = () => {
+      const [rating, setRating] = useState(0);
+      const [satisfactionText, setSatisfactionText] = useState("");
+      const [showInput, setShowInput] = useState(false);
+      const [resultMessage, setResultMessage] = useState("");
+
+      const emojiLabels = [
+        "매우 불만족",
+        "불만족",
+        "보통",
+        "만족",
+        "매우 만족",
+      ];
+      const emojis = ["😡", "😕", "😐", "🙂", "😍"];
+
+      const handleEmojiClick = (value) => {
+        setRating(value);
+        setShowInput(true);
+        setResultMessage(""); // Clear previous result message
+      };
+
+      const handleSubmit = () => {
+        if (!rating) {
+          setResultMessage("만족도를 선택해주세요!");
+          return;
+        }
+
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, "0");
+        const d = String(today.getDate()).padStart(2, "0");
+        const dateStr = `${y}년${m}월${d}일 계획 생성에 대한 피드백`;
+
+        const feedback = {
+          date: dateStr,
+          rating: rating,
+          text: satisfactionText.trim(),
+        };
+
+        // Save to localStorage
+        let arr = JSON.parse(localStorage.getItem("planSatisfaction") || "[]");
+        arr.push(feedback);
+        localStorage.setItem("planSatisfaction", JSON.stringify(arr));
+
+        setResultMessage("피드백이 저장되었습니다. 감사합니다!");
+        setRating(0); // Reset rating
+        setSatisfactionText(""); // Clear text
+        setShowInput(false); // Hide input
+        setTimeout(() => {
+          setResultMessage(""); // Clear message after a delay
+        }, 2500);
+      };
+
+      return (
+        <div
+          className="card"
+          style={{ textAlign: "center" }}
+        >
+          <h3 style={{ marginBottom: "12px" }}>오늘 계획 생성에 대한 만족도!</h3>
+          <div
+            id="emoji-rating"
+            style={{
+              fontSize: "2rem",
+              display: "flex",
+              justifyContent: "center",
+              gap: "16px",
+              marginBottom: "12px",
+            }}
+          >
+            {emojis.map((emoji, index) => (
+              <span
+                key={index}
+                data-value={index + 1}
+                title={emojiLabels[index]}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleEmojiClick(index + 1)}
+                className={
+                  rating === 0 ? "" : rating === index + 1 ? "selected" : "unselected"
+                }
+              >
+                {emoji}
+              </span>
+            ))}
+          </div>
+          {rating > 0 && (
+            <div id="selected-rating" style={{ marginBottom: "12px", color: "#f96c50", fontWeight: "600" }}>
+              {emojiLabels[rating - 1]} {emojis[rating - 1]}
+            </div>
+          )}
+
+          {showInput && (
+            <>
+              <textarea
+                id="satisfaction-text"
+                rows="2"
+                placeholder="오늘 계획에 대해 한줄평을 남겨주세요!"
+                value={satisfactionText}
+                onChange={(e) => setSatisfactionText(e.target.value)}
+                style={{ display: showInput ? "block" : "none" }} // Control display via style
+              ></textarea>
+              <button
+                id="satisfaction-submit"
+                className="btn-secondary"
+                style={{ display: showInput ? "inline-block" : "none", align: "center" }} // Control display
+                onClick={handleSubmit}
+              >
+                제출하기
+              </button>
+            </>
+          )}
+          {resultMessage && (
+            <div
+              id="satisfaction-result"
+              style={{
+                marginTop: "10px",
+                color: resultMessage.includes("감사합니다") ? "#2D7A2D" : "#F96C50",
+                fontWeight: "500"
+              }}
+            >
+              {resultMessage}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Component for the Encouragement Section
+    const EncouragementSection = ({ encouragementText }) => {
+      const [buttonText, setButtonText] = useState("내일도 화이팅! 💪");
+      const [buttonStyle, setButtonStyle] = useState({}); // Use state for dynamic style
+
+      const handleEncourageClick = () => {
+        setButtonText('고생하셨습니다 테스트는 여기서 끝입니다!!!! ❤️');
+        setButtonStyle({
+          background: '#F96C50',
+          color: 'white',
+          border: '2px solid #F96C50'
+        });
+
+        setTimeout(() => {
+          setButtonText("내일도 화이팅! 💪");
+          setButtonStyle({
+            background: 'linear-gradient(135deg, #FFE5E0, #FFF0ED)',
+            color: '#F96C50',
+            border: '2px solid #F96C50'
+          });
+        }, 2000);
+      };
+
+      return (
+        <div className="encouragement-section">
+          <div className="encouragement-text">오늘 하루도 수고했어요! 🎉</div>
+          <div className="encouragement-subtitle">{encouragementText}</div>
+          <button
+            id="encourage-btn"
+            className="btn-secondary"
+            onClick={handleEncourageClick}
+            style={buttonStyle} // Apply dynamic style
+          >
+            {buttonText}
+          </button>
+        </div>
+      );
+    };
+
+    // Main App Component
+    function DailyFeedback() {
+      const [feedbackData, setFeedbackData] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        // Fetch main data
+        myfetch("/api/feedback/daily")
+          .then((response) => response.json())
+          .then((data) => {
+            setFeedbackData(data);
+          })
+          .catch((err) => {
+            console.error("Failed to fetch feedback data:", err);
+            // Set empty state or error state if needed
+            setFeedbackData({});
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }, []); // Empty dependency array means this effect runs once on mount
+
+      useEffect(() => {
+        if (!loading) {
+          lucide.createIcons();
+        }
+      }, [loading]);
+
+      if (loading) {
+        return (
+          <>
+            <Header />
+            <div className="main-container">
+              <div style={{textAlign: 'center', marginTop: '50px'}}>로딩 중...</div>
+            </div>
+          </>
+        ); // Or a proper loading spinner
+      }
+
+      const encouragementSubtitle = feedbackData ?
+        feedbackData.feedback.encouragement
+        : '데이터 로딩에 실패했어요.';
+
+      return (
+        <>
+          <Header />
+          <div className="main-container">
+            <div className="page-title">
+              <h1>오늘의 학습 피드백 📅</h1>
+              <p>{feedbackData?.date || "— — — — — 학습 결과를 확인해보세요"}</p>
+            </div>
+
+            <div className="card">
+              <h2 className="card-title">
+                <i className="fas fa-chart-line"></i>
+                학습 요약
+              </h2>
+
+              <div className="summary-stats">
+                <div className="stat-item">
+                  <div className="stat-value">{feedbackData?.achievement != null ? feedbackData.achievement + "%" : "--%"}</div>
+                  <div className="stat-label">목표 달성률</div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${feedbackData?.achievement || 0}%` }}></div>
+                  </div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-value">
+                    {feedbackData?.totalTime != null ? `${Math.floor(feedbackData.totalTime / 60)}시간 ${(feedbackData.totalTime % 60)}분` : "--시간 --분"}
+                  </div>
+                  <div className="stat-label">총 학습 시간</div>
+                </div>
+              </div>
+
+              {feedbackData?.comparisonText && (
+                <div className="comparison-text">
+                  <i className="fas fa-arrow-up"></i>
+                  {feedbackData.comparisonText}
+                </div>
+              )}
+              {!feedbackData?.comparisonText && (
+                <div className="comparison-text" style={{display: 'none'}}></div>
+              )}
+            </div>
+
+            <div className="card">
+              <h2 className="card-title">
+                <i className="fas fa-book"></i>
+                학습 기록
+              </h2>
+
+              <ul className="study-list">
+                {feedbackData?.studyItems?.length > 0 ? (
+                  feedbackData.studyItems.map((item, index) => (
+                    <li key={index} className="study-item">
+                      <span className="study-checkbox"><i className="fas fa-check"></i></span>
+                      <span className="study-text">{item}</span>
+                    </li>
+                  ))
+                ) : (
+                    <li className="study-item"><span className="study-text">학습 목록이 없습니다.</span></li>
+                  )}
+              </ul>
+            </div>
+
+            <div className="card feedback-card">
+              <h2 className="card-title">
+                <i className="fas fa-comment-dots"></i>
+                피드백
+              </h2>
+
+              <div className="feedback-text">
+                {feedbackData?.feedback ? 
+                  <>
+                    <h3>🔍 학습 분석</h3>{feedbackData.feedback.analysis}<h3>💬 제안</h3>{feedbackData.feedback.suggestion}
+                  </> : (
+                    "피드백을 불러오지 못했습니다."
+                  )}
+              </div>
+            </div>
+
+            <SatisfactionSection />
+
+            <EncouragementSection encouragementText={encouragementSubtitle} />
+
+          </div>
+        </>
+      );
+    };
+
+    root.render(<DailyFeedback />);
+    </script>
+  </body>
+</html>
