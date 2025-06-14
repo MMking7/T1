@@ -123,35 +123,28 @@
 
       // =============== AI 제안 생성 (랜덤 더미) ===============
       const suggestions = [
-  {
-    "title": "교과서 개념 학습",
-    "emoji": "📗",
-    "memo": "이차함수 94~99쪽 개념 정리",
-    "start": "12:00",
-    "end": "12:30"
-  },
-  {
-    "title": "쎈 개념 정리 복습",
-    "emoji": "📘",
-    "memo": "이차함수 핵심 개념 요약",
-    "start": "12:30",
-    "end": "12:40"
-  },
-  {
-    "title": "쎈 문제풀이",
-    "emoji": "✏️",
-    "memo": "이차함수 의미 문제  (100~105쪽) 집중 풀이", 
-    "start": "12:40",
-    "end": "13:30"
-  },
-  {
-    "title": "오답 정리 및 마무리 복습",
-    "emoji": "📝",
-    "memo": "문제 복기 + 핵심 정리(개념 정리 포함)",
-    "start": "13:30",
-    "end": "14:00"
-  }
-];
+          {
+            "title": "수학 교과서 개념 정리",
+            "emoji": "📗",
+            "memo": "100~103쪽 정리",
+            "start": "12:00",
+            "end": "12:30"
+          },
+          {
+            "title": "RPM 이차함수 문제 풀이",
+            "emoji": "📘",
+            "memo": "120~125쪽 문제",
+            "start": "12:30",
+            "end": "13:10"
+          },
+          {
+            "title": "이차함수 오답 & 요점 정리",
+            "emoji": "🧠",
+            "memo": "노트 정리 및 복습",
+            "start": "13:10",
+            "end": "13:35"
+          }
+        ];
         
         function generateAiSuggestions() {
           const newAi = suggestions.map((it, i) => ({
@@ -390,7 +383,7 @@
               <button
                 onClick={(e) => {e.stopPropagation(); window.location.href = './home.html';}}
                 className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
-                aria-label="메인화면면"
+                aria-label="메인화면"
               >
                 <i data-lucide="home" className="lucide" style={{ width: 20, height: 20 }} />
               </button>
